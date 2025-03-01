@@ -1,1 +1,78 @@
-____
+# Mount Google Drive
+from google.colab import drive
+drive.mount('/content/drive')
+
+# Import libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Load the data
+df = pd.read_csv('/content/drive/MyDrive/sales_data.csv')
+
+# Clean the 'Net revenue' column (remove $ and commas, convert to numeric)
+df['Net revenue'] = df['Net revenue'].replace('[\$,]', '', regex=True).astype(float)
+
+# Convert 'Date' to datetime
+df['Date'] = pd.to_datetime(df['Date'])
+
+# Extract year from 'Date'
+df['Year'] = df['Date'].dt.year
+
+# Remove 2021 data (if incomplete or incorrect)
+df = df[df['Year'] != 2021]
+
+# Group by year and sum 'Net Revenue'
+annual_sales = df.groupby('Year')['Net revenue'].sum().reset_index()
+
+# Calculate YoY growth rate
+annual_sales['Growth Rate'] = annual_sales['Net revenue'].pct_change() * 100
+
+# Calculate average growth rate
+average_growth_rate = annual_sales['Growth Rate'].mean()
+
+# Get the last year's net revenue
+last_year_revenue = annual_sales.iloc[-1]['Net revenue']
+
+# Predict sales for 2025 and 2026
+future_years = [2025, 2026]
+future_sales = []
+
+for year in future_years:
+    last_year_revenue *= (1 + average_growth_rate / 100)
+    future_sales.append((year, last_year_revenue))
+
+# Convert predictions to a DataFrame
+future_sales_df = pd.DataFrame(future_sales, columns=['Year', 'Predicted Net Revenue'])
+
+# Combine historical and predicted data
+all_sales = pd.concat([annual_sales, future_sales_df], ignore_index=True)
+
+# Plot the data
+plt.figure(figsize=(10, 6))
+
+# Plot historical sales
+plt.plot(all_sales['Year'], all_sales['Net revenue'], marker='o', label='Historical Sales')
+
+# Plot predicted sales
+plt.plot(all_sales['Year'], all_sales['Predicted Net Revenue'], marker='o', linestyle='--', label='Predicted Sales')
+
+# Set x-axis to display only integer years
+plt.xticks(all_sales['Year'].astype(int))  # Ensure years are displayed as integers
+
+# Add labels and title
+plt.title('Annual Sales and Predictions')
+plt.xlabel('Year')
+plt.ylabel('Net Revenue')
+plt.grid(True)
+plt.legend()
+
+# Show the plot
+plt.show()
+
+# Display results
+print("Annual Sales with Growth Rates:")
+print(annual_sales)
+print(f"\nAverage Annual Growth Rate: {average_growth_rate:.2f}%")
+print("\nPredicted Sales for 2025 and 2026:")
+print(future_sales_df)
