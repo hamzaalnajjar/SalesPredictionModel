@@ -11,7 +11,7 @@ Machine Learning: Uses regression models to predict future sales.
 
 Visualization: Generates charts and graphs to show trends and patterns.
 
-Customizable: Allows adjustments based on business needs.
+Customizable: Can be adjusted based on business needs.
 
 *uses personal sales data (not listed here)
 
