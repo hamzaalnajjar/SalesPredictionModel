@@ -13,3 +13,5 @@ Visualization: Generates charts and graphs to show trends and patterns.
 
 Customizable: Allows adjustments based on business needs.
 
+*uses sales data (not listed)
+
