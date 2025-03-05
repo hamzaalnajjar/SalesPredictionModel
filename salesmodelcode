@@ -1,40 +1,44 @@
-# Mount Google Drive
+#connecting drive to fetch file
 from google.colab import drive
 drive.mount('/content/drive')
 
-# Import libraries
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 
-# Load the data
+#loads data to new df
 df = pd.read_csv('/content/drive/MyDrive/sales_data.csv')
 
-# Clean the 'Net revenue' column (remove $ and commas, convert to numeric)
+#cleaning data (removing $ and commas + convert to numeric)
 df['Net revenue'] = df['Net revenue'].replace('[\$,]', '', regex=True).astype(float)
+df['Avg. order value'] = df['Avg. order value'].replace('[\$,]', '', regex=True).astype(float)
+df['Refunds'] = df['Refunds'].replace('[\$,]', '', regex=True).astype(float)
 
-# Convert 'Date' to datetime
+#converting 'Date' to datetime
 df['Date'] = pd.to_datetime(df['Date'])
 
-# Extract year from 'Date'
+#taking year and month from 'Date'
 df['Year'] = df['Date'].dt.year
+df['Month'] = df['Date'].dt.month
+df['Year-Month'] = df['Date'].dt.to_period('M')
 
-# Remove 2021 data (if incomplete or incorrect)
+#removes 2021 data (if incomplete or incorrect)
 df = df[df['Year'] != 2021]
 
-# Group by year and sum 'Net Revenue'
+#groups by year and sum 'Net Revenue'
 annual_sales = df.groupby('Year')['Net revenue'].sum().reset_index()
 
-# Calculate YoY growth rate
+#calculates YoY growth rate
 annual_sales['Growth Rate'] = annual_sales['Net revenue'].pct_change() * 100
 
-# Calculate average growth rate
+#calculates average growth rate
 average_growth_rate = annual_sales['Growth Rate'].mean()
 
-# Get the last year's net revenue
+#gets the last year's net revenue
 last_year_revenue = annual_sales.iloc[-1]['Net revenue']
 
-# Predict sales for 2025 and 2026
+#prediction sales for 2025 + 2026
 future_years = [2025, 2026]
 future_sales = []
 
@@ -42,37 +46,91 @@ for year in future_years:
     last_year_revenue *= (1 + average_growth_rate / 100)
     future_sales.append((year, last_year_revenue))
 
-# Convert predictions to a DataFrame
+#take predictions to a DataFrame
 future_sales_df = pd.DataFrame(future_sales, columns=['Year', 'Predicted Net Revenue'])
 
-# Combine historical and predicted data
+#combine historical and predicted data
 all_sales = pd.concat([annual_sales, future_sales_df], ignore_index=True)
 
-# Plot the data
+#plots data
 plt.figure(figsize=(10, 6))
-
-# Plot historical sales
 plt.plot(all_sales['Year'], all_sales['Net revenue'], marker='o', label='Historical Sales')
-
-# Plot predicted sales
 plt.plot(all_sales['Year'], all_sales['Predicted Net Revenue'], marker='o', linestyle='--', label='Predicted Sales')
-
-# Set x-axis to display only integer years
 plt.xticks(all_sales['Year'].astype(int))  # Ensure years are displayed as integers
-
-# Add labels and title
 plt.title('Annual Sales and Predictions')
 plt.xlabel('Year')
 plt.ylabel('Net Revenue')
 plt.grid(True)
 plt.legend()
-
-# Show the plot
 plt.show()
 
-# Display results
+#display results
 print("Annual Sales with Growth Rates:")
 print(annual_sales)
 print(f"\nAverage Annual Growth Rate: {average_growth_rate:.2f}%")
 print("\nPredicted Sales for 2025 and 2026:")
 print(future_sales_df)
+
+#monthly sales analysis
+monthly_sales = df.groupby('Year-Month')['Net revenue'].sum().reset_index()
+plt.figure(figsize=(12, 6))
+plt.plot(monthly_sales['Year-Month'].astype(str), monthly_sales['Net revenue'], marker='o')
+plt.title('Monthly Net Revenue')
+plt.xlabel('Month')
+plt.ylabel('Net Revenue')
+plt.xticks(rotation=45)
+plt.grid(True)
+plt.show()
+
+#avg order value analysis
+monthly_aov = df.groupby('Year-Month')['Avg. order value'].mean().reset_index()
+plt.figure(figsize=(12, 6))
+plt.plot(monthly_aov['Year-Month'].astype(str), monthly_aov['Avg. order value'], marker='o', color='orange')
+plt.title('Monthly Average Order Value (AOV)')
+plt.xlabel('Month')
+plt.ylabel('AOV')
+plt.xticks(rotation=45)
+plt.grid(True)
+plt.show()
+
+#refunds analysis
+annual_refunds = df.groupby('Year')['Refunds'].sum().reset_index()
+plt.figure(figsize=(10, 6))
+plt.bar(annual_refunds['Year'], annual_refunds['Refunds'], color='red')
+plt.title('Annual Refunds')
+plt.xlabel('Year')
+plt.ylabel('Refunds')
+plt.grid(True)
+plt.show()
+
+#total orders analysis
+annual_orders = df.groupby('Year')['Total orders'].sum().reset_index()
+plt.figure(figsize=(10, 6))
+plt.bar(annual_orders['Year'], annual_orders['Total orders'], color='green')
+plt.title('Annual Total Orders')
+plt.xlabel('Year')
+plt.ylabel('Total Orders')
+plt.grid(True)
+plt.show()
+
+#creates correlation analysis to be able to create conclusions
+correlation_matrix = df[['Total orders', 'Avg. order value', 'Net revenue']].corr()
+plt.figure(figsize=(8, 6))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f')
+plt.title('Correlation Matrix')
+plt.show()
+
+#annual summary
+annual_summary = df.groupby('Year').agg({
+    'Net revenue': 'sum',
+    'Total orders': 'sum',
+    'Avg. order value': 'mean',
+    'Refunds': 'sum'
+}).reset_index()
+print("Annual Summary:")
+print(annual_summary)
+
+#exports final results
+annual_summary.to_csv('annual_summary.csv', index=False)
+future_sales_df.to_csv('future_sales_predictions.csv', index=False)
+
