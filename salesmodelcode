@@ -1,6 +1,5 @@
 #used personal data from company
-#run in google co lab
-
+#run in google Colab
 
 #connecting drive to connect
 from google.colab import drive
