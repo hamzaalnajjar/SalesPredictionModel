@@ -15,3 +15,5 @@ Customizable: Can be adjusted based on business needs.
 
 *uses personal sales data (not listed here)
 
+*should print graphs along with the sales analysis and prediction over the next two years
+
