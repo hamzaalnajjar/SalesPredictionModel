@@ -1,3 +1,6 @@
+#used personal data from company.
+
+
 #connecting drive to connect
 from google.colab import drive
 drive.mount('/content/drive')
