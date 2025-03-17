@@ -3,7 +3,9 @@ Overview
 
 This Sales Prediction Model is designed to analyze past sales data and forecast future sales trends. By leveraging machine learning techniques, the model helps businesses make informed decisions, optimize inventory, and maximize revenue.
 
-#readme
+#readme file
+
+
 
 Features Of This Project:
 
