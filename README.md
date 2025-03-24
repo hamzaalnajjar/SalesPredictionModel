@@ -6,7 +6,6 @@ This Sales Prediction Model is designed to analyze past sales data and forecast 
 
 Overview
 
-
 Features Of This Project:
 
 
